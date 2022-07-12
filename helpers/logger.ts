@@ -38,22 +38,22 @@ class Logger {
         console.log(messages.join('\n'));
     }
 
-    static async success(...messages: string[]) {
+    static async success(...messages: any[]) {
         const head: string = colors.bgGreen.white.bold(`${logLevels.success}:`);
         this.log(head, ...messages);
     }
 
-    static async error(...messages: string[]) {
+    static async error(...messages: any[]) {
         const head: string = colors.bgRed.white.bold(`${logLevels.error}:`);
         this.log(head, ...messages);
     }
 
-    static async warning(...messages: string[]) {
+    static async warning(...messages: any[]) {
         const head: string = colors.bgYellow.white.bold(`${logLevels.warning}:`);
         this.log(head, ...messages);
     }
 
-    static async info(...messages: string[]) {
+    static async info(...messages: any[]) {
         const head: string = colors.bgCyan.white.bold(`${logLevels.info}:`);
         this.log(head, ...messages);
     }

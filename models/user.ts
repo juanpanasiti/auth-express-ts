@@ -19,7 +19,7 @@ const UserSchema = new Schema<UserModel>({
     },
     img: {
         type: String,
-        defualt: null,
+        default: null,
     },
     role: {
         type: String,

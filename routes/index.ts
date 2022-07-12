@@ -1,7 +1,9 @@
-import testsRoutes from './tests.routes';
+import testRoutes from './test.routes';
 import authRoutes from './auth.routes';
+import userRoutes from './user.routes';
 
 export default {
-    testsRoutes,
+    testsRoutes: testRoutes,
     authRoutes,
+    userRoutes,
 };

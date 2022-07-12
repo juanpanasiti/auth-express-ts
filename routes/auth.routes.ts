@@ -4,7 +4,7 @@ import { check } from 'express-validator';
 import * as authControllers from '../controllers/auth.controllers';
 import { userFieldExists } from '../helpers/db-validators';
 import { filterValidFields, fieldValidate, atLeastOneExists } from '../middlewares/field-middlewares';
-// TODO: controllers, helpers and validators
+import { validateJWT } from '../middlewares/jwt-middlewares';
 
 const router = Router();
 
@@ -34,5 +34,7 @@ router.post(
     ],
     authControllers.login
 );
+
+router.get('/token', [validateJWT], authControllers.renewJWT);
 
 export default router;

@@ -1,10 +1,12 @@
 import { Request, Response } from 'express';
+
 import { Status } from '../constants/enums';
 import { generateJWT } from '../helpers/jwt';
 import Logger from '../helpers/logger';
 import { check } from '../helpers/password';
 import { UserModel } from '../interfaces/user.interface';
-import * as userServices from '../services/users.services';
+import * as userServices from '../services/user.services';
+import { JWTPayload } from '../interfaces/auth.interfaces';
 
 export const register = async (req: Request, res: Response) => {
     try {
@@ -29,9 +31,9 @@ export const login = async (req: Request, res: Response) => {
 
         // Checks if user exist on DB (by email or username)
         if (email) {
-            user = await userServices.getUserByFieldsFilter({ email });
+            user = await userServices.getOneUserByFilter({ email });
         } else {
-            user = await userServices.getUserByFieldsFilter({ username });
+            user = await userServices.getOneUserByFilter({ username });
         }
         // TODO: change filter to imporove this 'if'
         if (!user || user.status === Status.BANNED || user.status === Status.DELETED) {
@@ -62,5 +64,18 @@ export const login = async (req: Request, res: Response) => {
         res.status(400).json({
             errors: [err],
         });
+    }
+};
+
+export const renewJWT = async (req: Request, res: Response) => {
+    const { uid } = req.body as JWTPayload;
+    try {
+        const token = await generateJWT(uid);
+        return res.status(200).json({
+            response_data: token,
+        });
+    } catch (err) {
+        Logger.error(`${err}`);
+        res.status(500).json({ errors: [err] });
     }
 };

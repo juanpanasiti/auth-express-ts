@@ -13,8 +13,9 @@ const apiV1 = '/api/v1';
 class Server {
     private app: Application;
     private port: string;
-    private apiPaths= {
+    private apiPaths = {
         auth: `${apiV1}/auth`,
+        users: `${apiV1}/users`,
     };
 
     constructor() {
@@ -22,7 +23,7 @@ class Server {
         this.port = process.env.PORT || '3999';
 
         if (!isDevEnv()) {
-            colors.disable()
+            colors.disable();
         }
 
         // DB Connection
@@ -36,7 +37,7 @@ class Server {
     }
 
     async connectDadaBase() {
-        await dbConnection()
+        await dbConnection();
     }
 
     middlewares() {
@@ -48,12 +49,13 @@ class Server {
     setRoutes() {
         this.app.use('/api/tests', routes.testsRoutes);
         this.app.use(this.apiPaths.auth, routes.authRoutes);
+        this.app.use(this.apiPaths.users, routes.userRoutes);
     }
 
     listen() {
         // este metodo es llamado despues de instanciar un objeto Server
         this.app.listen(this.port, () => {
-            Logger.info(`Server running on port ${this.port}`)
+            Logger.info(`Server running on port ${this.port}`);
         });
     }
 }

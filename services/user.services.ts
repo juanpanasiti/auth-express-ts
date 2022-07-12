@@ -2,7 +2,8 @@ import User from '../models/user';
 import Logger from '../helpers/logger';
 import { RegisterBody } from '../interfaces/auth.interfaces';
 import { encrypt } from '../helpers/password';
-import { UserModel } from '../interfaces/user.interface';
+import { UserModel, UsersFilterOptions } from '../interfaces/user.interface';
+import { FilterQuery } from 'mongoose';
 
 export const countUsersByFilter = async (filter: object) => {
     try {
@@ -30,11 +31,24 @@ export const createUser = async (fields: RegisterBody) => {
     }
 };
 
-export const getUserByFieldsFilter = async (filter: object): Promise<UserModel | null> => {
+export const getOneUserByFilter = async (
+    filter: FilterQuery<UserModel>,
+    fields: string = ''
+): Promise<UserModel | null> => {
     try {
-        return await User.findOne(filter);
+        return await User.findOne(filter, fields);
     } catch (err) {
-        Logger.error('Error on .../services/user.services.ts -> getUserByFieldsFilter()', `${err}`);
+        Logger.error('Error on .../services/user.services.ts -> getOneUserByFilter()', `${err}`);
+        throw new Error(`${err}`);
+    }
+};
+
+export const getManyUsersByFilter = async (filterOptions: UsersFilterOptions): Promise<UserModel[]> => {
+    const { filter, options = {}, projection = null } = filterOptions;
+    try {
+        return await User.find(filter, projection, options);
+    } catch (err) {
+        Logger.error('Error on .../services/user.services.ts -> getManyUsersByFilter()', `${err}`);
         throw new Error(`${err}`);
     }
 };

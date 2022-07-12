@@ -1,4 +1,4 @@
-import * as userServices from '../services/users.services';
+import * as userServices from '../services/user.services';
 
 export const userFieldExists = async (fieldName: string, fieldValue: string) => {
     const count = await userServices.countUsersByFilter({ [fieldName]: fieldValue });
