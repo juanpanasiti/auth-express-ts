@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { AnyKeys } from 'mongoose';
 
 import Logger from '../helpers/logger';
 import { JWTPayload } from '../interfaces/auth.interfaces';
@@ -25,8 +24,12 @@ export const validateJWT = (req: Request, res: Response, next: NextFunction) => 
     try {
         const { uid } = jwt.verify(token, process.env.PRIVATE_JWT_KEY || '') as JWTPayload;
 
+        if (!uid) {
+            return res.status(401).json({errors: ['The token is bad, please, relogin']})
+        }
+
         // if not fails, the token is good
-        req.body.uid = uid;
+        req.headers.authId = `${uid}`
         next();
     } catch (err) {
         Logger.error(`${err}`);

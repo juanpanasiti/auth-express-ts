@@ -6,7 +6,6 @@ import Logger from '../helpers/logger';
 import { check } from '../helpers/password';
 import { UserModel } from '../interfaces/user.interface';
 import * as userServices from '../services/user.services';
-import { JWTPayload } from '../interfaces/auth.interfaces';
 
 export const register = async (req: Request, res: Response) => {
     try {
@@ -68,9 +67,10 @@ export const login = async (req: Request, res: Response) => {
 };
 
 export const renewJWT = async (req: Request, res: Response) => {
-    const { uid } = req.body as JWTPayload;
+    const uid = req.headers.authId;
+
     try {
-        const token = await generateJWT(uid);
+        const token = await generateJWT(`${uid}`);
         return res.status(200).json({
             response_data: token,
         });

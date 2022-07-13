@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongoose';
 import Logger from './logger';
 
-export const generateJWT = (uid: ObjectId) => {
+export const generateJWT = (uid: ObjectId | string) => {
     return new Promise((resolve, reject) => {
         const payload = { uid };
         const secret = process.env.PRIVATE_JWT_KEY || ''
