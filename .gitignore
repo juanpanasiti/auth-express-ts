@@ -3,3 +3,6 @@ dist/
 
 # Node
 node_modules/
+
+# Env
+.env
