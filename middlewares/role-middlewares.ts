@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 
 import { Roles, Status } from '../constants/enums';
 import Logger from '../helpers/logger';
-import { UserModel } from '../interfaces/user.interface';
+import { UserModel, UsersFilterOptions } from '../interfaces/user.interface';
 import * as userServices from '../services/user.services';
 
 // type AllowedRoles = Object.values(Roles)
@@ -23,8 +23,13 @@ export const hasRole = (allowed_roles: Roles[]) => {
         };
 
         try {
+            const filterOptions: UsersFilterOptions = {
+                filter: { _id: uid, status: Status.ACTIVE },
+            };
 
-            const user = await userServices.getOneUserByFilter(filter, 'role');
+            filterOptions.projection = 'role';
+
+            const user = await userServices.getOneUserByFilter(filterOptions);
 
             if (!user) {
                 return res.status(401).json({
@@ -55,32 +60,26 @@ export const hasRole = (allowed_roles: Roles[]) => {
     };
 };
 
-export const checkPermissionAndExistence = async (
-    req: Request<{ id: ObjectId }>,
-    res: Response,
-    next: NextFunction
-) => {
-    const reqUID: string = req.params.id.toString();
-
+export const checkPermissionAndExistence = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+    const reqUID: string = req.params.id;
     const loggedUID = req.headers.authId;
     if (!loggedUID) {
         res.status(500).json({
             errors: [{ msg: 'Token not validated previusly, this is a server error commited by the developer' }],
         });
     }
-
     try {
+        const filterOptions: UsersFilterOptions = {
+            filter: { _id: loggedUID, status: Status.ACTIVE },
+        };
+
+        filterOptions.projection = 'role';
+        const user = await userServices.getOneUserByFilter(filterOptions);
+
+        if (!user) {
+            return res.status(400).json({ errors: ['Something went wrong with your token, please relogin'] });
+        }
         if (loggedUID !== reqUID) {
-            // const { role } = await userServices.getUserById(loggedUID, ['role']);
-            const filter: FilterQuery<UserModel> = {
-                id: loggedUID,
-            };
-            const user = await userServices.getOneUserByFilter(filter, 'role');
-
-            if (!user) {
-                return res.status(400).json({ errors: ['Something went wrong with your token, please relogin'] });
-            }
-
             if (![Roles.ADMIN, Roles.SUPER_ADMIN].includes(user.role)) {
                 return res.status(403).json({
                     errors: [
@@ -91,7 +90,8 @@ export const checkPermissionAndExistence = async (
                 });
             }
         }
-        next()
+        req.headers.authRole = user.role;
+        next();
     } catch (err) {
         Logger.error(err);
         if (err instanceof jwt.TokenExpiredError) {
@@ -111,3 +111,5 @@ export const checkPermissionAndExistence = async (
         }
     }
 };
+
+// };

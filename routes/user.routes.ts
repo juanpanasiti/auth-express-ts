@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { check } from 'express-validator';
 
-import { fieldValidate } from '../middlewares/field-middlewares';
+import { fieldValidate, filterValidFields } from '../middlewares/field-middlewares';
 import { validateJWT } from '../middlewares/jwt-middlewares';
 import * as userControllers from '../controllers/user.controllers';
 import { Roles, Status } from '../constants/enums';
-import { hasRole } from '../middlewares/role-middlewares';
+import { checkPermissionAndExistence, hasRole } from '../middlewares/role-middlewares';
 
 const router = Router();
 
@@ -21,7 +21,7 @@ router.get(
         validateJWT,
         check('id', "It isn't a valid uid.").isMongoId(),
         fieldValidate,
-        // checkPermissionAndExistence
+        checkPermissionAndExistence,
     ],
     userControllers.getUserById
 );
@@ -30,7 +30,8 @@ router.put(
     '/:id',
     [
         validateJWT,
-        hasRole(Object.values(Roles)),
+        filterValidFields(['username', 'password', 'email', 'img','status','role']),
+        // hasRole([Roles.ADMIN, Roles.SUPER_ADMIN]),
         check('role', 'Role is invalid')
             .if((role: string) => !!role)
             .isIn(Object.values(Roles)),
@@ -38,6 +39,7 @@ router.put(
             .if((status: string) => !!status)
             .isIn(Object.values(Status)),
         fieldValidate,
+        checkPermissionAndExistence,
     ],
     userControllers.updateUserById
 );

@@ -4,7 +4,7 @@ import { Status } from '../constants/enums';
 import { generateJWT } from '../helpers/jwt';
 import Logger from '../helpers/logger';
 import { check } from '../helpers/password';
-import { UserModel } from '../interfaces/user.interface';
+import { UserModel, UsersFilterOptions } from '../interfaces/user.interface';
 import * as userServices from '../services/user.services';
 
 export const register = async (req: Request, res: Response) => {
@@ -29,13 +29,17 @@ export const login = async (req: Request, res: Response) => {
         let user: UserModel | null;
 
         // Checks if user exist on DB (by email or username)
+        const filterOptions: UsersFilterOptions = { filter: undefined}
         if (email) {
-            user = await userServices.getOneUserByFilter({ email });
+            filterOptions.filter = {email}
         } else {
-            user = await userServices.getOneUserByFilter({ username });
+            filterOptions.filter = {username}
         }
-        // TODO: change filter to imporove this 'if'
-        if (!user || user.status === Status.BANNED || user.status === Status.DELETED) {
+        filterOptions.filter['status'] = Status.ACTIVE
+        filterOptions.projection = 'username email img role password';
+        user = await userServices.getOneUserByFilter(filterOptions);
+
+        if (!user) {
             return res.status(400).json({
                 errors: ['Incorrect credentials, try again.'],
             });

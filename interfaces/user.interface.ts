@@ -12,8 +12,17 @@ export interface UserModel {
     google: boolean;
 }
 
+export interface EditableUserData {
+    email?: string;
+    username?: string;
+    password?: string;
+    img?: string | null;
+    role?: Roles;
+    status?: Status;
+}
+
 export interface UsersFilterOptions {
-    filter: FilterQuery<UserModel>;
+    filter: FilterQuery<UserModel> | undefined;
     projection?: ProjectionType<UserModel> | null | undefined;
     options?: QueryOptions<UserModel> | null | undefined;
 }
