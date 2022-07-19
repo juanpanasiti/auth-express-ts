@@ -1,24 +1,19 @@
 import { Request, Response } from 'express';
-import { FilterQuery } from 'mongoose';
 
 import { Roles, Status } from '../constants/enums';
 import Logger from '../helpers/logger';
 import { encrypt } from '../helpers/password';
 import { PaginationQuery } from '../interfaces/path.interfaces';
-import { JsonResponse } from '../interfaces/reqRes.interfaces';
-
+import { JsonResponse } from '../interfaces/response.interfaces';
 import { EditableUserData, UsersFilterOptions } from '../interfaces/user.interface';
 import * as userServices from '../services/user.services';
 
-export const getAllPaginated = async (req: Request<{}, {}, {}, PaginationQuery>, res: Response) => {
+export const getAllPaginated = async (req: Request<{}, {}, {}, PaginationQuery>, res: Response<JsonResponse>) => {
     const { skip = 0, limit = 2 } = req.query;
 
     try {
         const filterOptions: UsersFilterOptions = {
             filter: { $or: [{ status: Status.ACTIVE }, { status: Status.PENDING }] },
-            // filter: {
-            //     status: Status.DELETED
-            // }
         };
         const countProm = userServices.countUsersByFilter(filterOptions);
         filterOptions.options = {
@@ -40,12 +35,17 @@ export const getAllPaginated = async (req: Request<{}, {}, {}, PaginationQuery>,
     } catch (err) {
         Logger.error(`${err}`);
         res.status(500).json({
-            errors: [err],
+            response_data: null,
+            errors: [
+                {
+                    msg: `Error -> ${err}`,
+                },
+            ],
         });
     }
 };
 
-export const getUserById = async (req: Request, res: Response) => {
+export const getUserById = async (req: Request, res: Response<JsonResponse>) => {
     const uid = req.params.id;
 
     try {
@@ -57,7 +57,16 @@ export const getUserById = async (req: Request, res: Response) => {
         const user = await userServices.getOneUserByFilter(filterOptions);
 
         if (!user) {
-            return res.status(404).json({ errors: [`User ${uid} not found.`] });
+            return res.status(404).json({
+                response_data: null,
+                errors: [
+                    {
+                        msg: `User ${uid} not found.`,
+                        location: 'params',
+                        param: 'id',
+                    },
+                ],
+            });
         }
 
         res.status(200).json({
@@ -67,7 +76,12 @@ export const getUserById = async (req: Request, res: Response) => {
     } catch (err) {
         Logger.error(`${err}`);
         res.status(500).json({
-            errors: [err],
+            response_data: null,
+            errors: [
+                {
+                    msg: `Error -> ${err}`,
+                },
+            ],
         });
     }
 };
@@ -111,7 +125,13 @@ export const updateUserById = async (
         if (!userEdited) {
             res.status(404).json({
                 response_data: null,
-                errors: [`User ${uid} not found`],
+                errors: [
+                    {
+                        msg: `User ${uid} not found.`,
+                        location: 'params',
+                        param: 'id',
+                    },
+                ],
             });
         }
         res.status(200).json({
@@ -121,24 +141,32 @@ export const updateUserById = async (
     } catch (err) {
         res.status(500).json({
             response_data: null,
-            errors: [`${err}`],
+            errors: [
+                {
+                    msg: `Error -> ${err}`,
+                },
+            ],
         });
     }
-
-    // return res.status(501).json('not implemented.. yet');
 };
 
-export const deleteUserById = async (req: Request, res: Response) => {
+export const deleteUserById = async (req: Request, res: Response<JsonResponse>) => {
     const uid = req.params.id;
     const editPayload: EditableUserData = {
-        status: Status.DELETED
+        status: Status.DELETED,
     };
     try {
         const userDeleted = await userServices.updateUserById(uid, editPayload);
         if (!userDeleted) {
             res.status(404).json({
                 response_data: null,
-                errors: [`User ${uid} not found`],
+                errors: [
+                    {
+                        msg: `User ${uid} not found.`,
+                        location: 'params',
+                        param: 'id',
+                    },
+                ],
             });
         }
         res.status(200).json({
@@ -148,7 +176,11 @@ export const deleteUserById = async (req: Request, res: Response) => {
     } catch (err) {
         res.status(500).json({
             response_data: null,
-            errors: [`${err}`],
+            errors: [
+                {
+                    msg: `Error -> ${err}`,
+                },
+            ],
         });
     }
 };
